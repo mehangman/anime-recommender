@@ -6,6 +6,7 @@ import { Send, Sparkles, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import AnimeCard from '@/components/AnimeCard'
 import { AnimeModal } from '@/components/AnimeModal'
 import type { Anime } from '@/components/AnimeModal'
+import { UserMenu } from '@/components/UserMenu'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -32,17 +33,16 @@ function saveMessages(userId: string, messages: Message[]) {
 }
 
 export default function DashboardClient({ user }: { user: User }) {
-  const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [recommendLoading, setRecommendLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [selectedAnime, setSelectedAnime] = useState<Anime | null>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
   const [hydrated, setHydrated] = useState(false)
   const [autoSubmitDone, setAutoSubmitDone] = useState(false)
+  const [selectedAnime, setSelectedAnime] = useState<Anime | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // 1. Load saved history on mount
+  // 1. Initial hydration based on user name
   useEffect(() => {
     let userName = 'Guest'
     if (user.user_metadata?.full_name) {
@@ -91,46 +91,39 @@ export default function DashboardClient({ user }: { user: User }) {
   }, [hydrated, autoSubmitDone])
 
   const submitQuery = async (queryText: string) => {
-    if (chatLoading || recommendLoading) return
-
     const userMessage: Message = { role: 'user', content: queryText }
     const currentMessages = [...messages, userMessage]
     
     setMessages(currentMessages)
-
     setInput('')
     setChatLoading(true)
-    setError('')
 
     try {
-      const res = await fetch('/api/recommend', {
+      const response = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: currentMessages.map((m) => ({ role: m.role, content: m.content })),
-          mode: 'chat',
-        }),
+        body: JSON.stringify({ messages: currentMessages, mode: 'chat' }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to get response')
 
-      if (data.type === 'recommendations' && data.results) {
-        // AI decided to show recommendations — add message with card results
-        const sorted = (data.results as Anime[]).sort(
-          (a, b) => (b.score ?? 0) - (a.score ?? 0)
-        )
-        const resultMessage: Message = {
-          role: 'assistant',
-          content: data.reply,
-          animeResults: sorted,
-        }
-        setMessages((prev) => [...prev, resultMessage])
-      } else {
-        // Normal conversational reply
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
+      if (!response.ok) {
+        throw new Error('Failed to fetch from API')
       }
-    } catch (err) {
-      setError((err as Error).message)
+
+      const data = await response.json()
+      
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.message || "Here are some recommendations!",
+        animeResults: data.animes || []
+      }
+      
+      setMessages([...currentMessages, assistantMessage])
+    } catch (error) {
+      console.error(error)
+      setMessages([...currentMessages, { 
+        role: 'assistant', 
+        content: 'Ah, I tripped on a cable! Can we try that again?' 
+      }])
     } finally {
       setChatLoading(false)
     }
@@ -138,44 +131,38 @@ export default function DashboardClient({ user }: { user: User }) {
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() || chatLoading) return
     await submitQuery(input.trim())
   }
 
-  // Manual "Show Recommended List" button — uses the separate recommend mode
-  const getRecommendations = async () => {
+  const fetchRecommendations = async () => {
+    if (recommendLoading || messages.length === 0) return
     setRecommendLoading(true)
-    setError('')
-
-    const excludeTitles = messages
-      .flatMap((m) => m.animeResults || [])
-      .map((a) => a.title)
 
     try {
-      const res = await fetch('/api/recommend', {
+      const response = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: messages.map((m) => ({ role: m.role, content: m.content })),
-          mode: 'recommend',
-          excludeTitles,
-        }),
+        body: JSON.stringify({ messages, mode: 'recommend' }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to fetch recommendations')
 
-      const sorted = (data.results as Anime[]).sort(
-        (a, b) => (b.score ?? 0) - (a.score ?? 0)
-      )
-
-      const resultMessage: Message = {
+      if (!response.ok) throw new Error('API failed')
+      
+      const data = await response.json()
+      
+      const assistantMessage: Message = {
         role: 'assistant',
-        content: `Here are my picks for you! Click any card for details. 🎯`,
-        animeResults: sorted,
+        content: data.message || "I found some great matches for you!",
+        animeResults: data.animes || []
       }
-      setMessages((prev) => [...prev, resultMessage])
-    } catch (err) {
-      setError((err as Error).message)
+      
+      setMessages(prev => [...prev, assistantMessage])
+    } catch (error) {
+      console.error(error)
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I couldn\'t fetch recommendations right now.'
+      }])
     } finally {
       setRecommendLoading(false)
     }
@@ -190,12 +177,24 @@ export default function DashboardClient({ user }: { user: User }) {
     } else if (user.email) {
       userName = user.email.split('@')[0]
     }
-    const dynamicGreeting: Message = {
+
+    const initial: Message[] = [{
       role: 'assistant',
       content: `Hi ${userName} senpai! ✨ What anime are you into, or what are you in the mood for?`
-    }
-    setMessages([dynamicGreeting])
-    localStorage.removeItem(getStorageKey(user.id))
+    }]
+    setMessages(initial)
+    sessionStorage.removeItem(`anime_chat_history_${user.id}`)
+  }
+
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-400 font-medium animate-pulse">Loading workspace...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -216,22 +215,13 @@ export default function DashboardClient({ user }: { user: User }) {
               <Trash2 size={14} />
               <span>Clear Chat</span>
             </button>
-            <div className="flex items-center gap-2 sm:gap-3 bg-[#1e1e1e] border border-gray-700 rounded-full px-3 sm:px-4 py-1 sm:py-1.5">
-              <span className="text-xs sm:text-sm text-gray-300 font-medium truncate max-w-[60px] sm:max-w-[120px]">{user.email}</span>
-              <div className="w-[1px] h-3 sm:h-4 bg-gray-700"></div>
-              <a
-                href="/saved"
-                className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors font-semibold flex items-center gap-1"
-              >
-                My List
-              </a>
-              <div className="w-[1px] h-3 sm:h-4 bg-gray-700"></div>
-              <form action="/auth/signout" method="post">
-                <button className="text-xs sm:text-sm text-red-400 hover:text-red-300 transition-colors font-semibold">
-                  Sign Out
-                </button>
-              </form>
-            </div>
+            <a
+              href="/saved"
+              className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors font-semibold bg-[#1e1e1e] hover:bg-gray-800 border border-gray-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm"
+            >
+              My List
+            </a>
+            <UserMenu email={user.email || ''} onClearChat={clearHistory} />
           </div>
         </div>
       </header>
@@ -252,49 +242,35 @@ export default function DashboardClient({ user }: { user: User }) {
                   {msg.content}
                 </div>
               </div>
-
-              {/* Inline anime results carousel */}
-              {msg.animeResults && msg.animeResults.length > 0 && (
-                <InlineCarousel
-                  results={msg.animeResults}
-                  onSelect={(anime) => setSelectedAnime(anime)}
-                />
+              
+              {/* If this is the assistant message with anime results, show carousel directly below it */}
+              {msg.role === 'assistant' && msg.animeResults && msg.animeResults.length > 0 && (
+                <InlineCarousel results={msg.animeResults} onSelect={setSelectedAnime} />
               )}
             </div>
           ))}
 
-          {(chatLoading) && (
+          {/* Loading States */}
+          {chatLoading && (
             <div className="flex justify-start">
-              <div className="bg-[#1e1e1e] border border-gray-700 px-4 py-3 rounded-2xl rounded-bl-md">
-                <span className="flex gap-1">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </span>
+              <div className="bg-[#1e1e1e] text-gray-200 border border-gray-700 rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5">
+                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span>
               </div>
             </div>
           )}
-
-          {recommendLoading && (
-            <div className="flex justify-start">
-              <div className="bg-[#1e1e1e] border border-gray-700 px-4 py-3 rounded-2xl rounded-bl-md text-sm text-gray-300">
-                <span className="animate-pulse">🔍 Finding the perfect anime for you...</span>
-              </div>
-            </div>
-          )}
-
+          
           <div ref={messagesEndRef} />
         </div>
-
-        {error && <p className="text-red-500 text-center text-sm mb-3">{error}</p>}
-
-        {/* Bottom controls */}
-        <div className="flex flex-col gap-3">
+        
+        {/* Input area */}
+        <div className="shrink-0 relative">
           {/* Recommend Button */}
           <button
-            onClick={getRecommendations}
-            disabled={recommendLoading || chatLoading}
-            className="mx-auto flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-full font-semibold transition-all disabled:opacity-50 shadow-lg text-sm"
+            onClick={fetchRecommendations}
+            disabled={recommendLoading || chatLoading || messages.length <= 1}
+            className="absolute -top-14 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-5 py-2 rounded-full shadow-lg transition-all disabled:opacity-0 disabled:scale-95 flex items-center gap-2 font-medium text-sm"
           >
             {recommendLoading ? (
               <>
@@ -304,7 +280,7 @@ export default function DashboardClient({ user }: { user: User }) {
             ) : (
               <>
                 <Sparkles size={16} />
-                Show Recommended List
+                Get Recommendations
               </>
             )}
           </button>
@@ -316,6 +292,10 @@ export default function DashboardClient({ user }: { user: User }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Tell me about your anime taste..."
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
               className="flex-1 rounded-full px-5 py-3 bg-[#1e1e1e] text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               disabled={chatLoading || recommendLoading}
             />

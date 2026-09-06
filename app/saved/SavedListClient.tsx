@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Trash2, Star, ArrowLeft } from 'lucide-react'
 import { removeFromList } from '@/app/actions/anime'
+import { UserMenu } from '@/components/UserMenu'
 
 import { AnimeModal } from '@/components/AnimeModal'
 import type { Anime } from '@/components/AnimeModal'
@@ -59,14 +60,8 @@ export default function SavedListClient({
               <span className="hidden sm:block text-xs font-medium text-gray-500 group-hover:text-gray-300">Back to chat</span>
             </a>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 bg-[#1e1e1e] border border-gray-700/50 rounded-full px-3 sm:px-4 py-1.5 shadow-sm">
-            <span className="text-xs sm:text-sm text-gray-300 font-medium truncate max-w-[80px] sm:max-w-none">{userEmail}</span>
-            <div className="w-[1px] h-3 sm:h-4 bg-gray-700"></div>
-            <form action="/auth/signout" method="post">
-              <button className="text-xs sm:text-sm text-red-400 hover:text-red-300 transition-colors font-semibold">
-                Sign Out
-              </button>
-            </form>
+          <div className="flex items-center">
+            <UserMenu email={userEmail} />
           </div>
         </div>
       </header>

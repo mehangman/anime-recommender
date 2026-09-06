@@ -7,6 +7,8 @@ import { User } from '@supabase/supabase-js'
 import AnimeCard from '@/components/AnimeCard'
 import { AnimeModal, type Anime } from '@/components/AnimeModal'
 
+import { UserMenu } from '@/components/UserMenu'
+
 interface HomePageClientProps {
   user: User | null
   userName: string
@@ -72,10 +74,10 @@ export default function HomePageClient({ user, userName }: HomePageClientProps) 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/15 via-[#0a0a0a] to-[#0a0a0a] text-white">
       
-      {/* Navbar for Landing Page */}
-      <header className="w-full px-4 sm:px-6 py-4 flex justify-between items-center max-w-6xl mx-auto">
+      {/* Header */}
+      <header className="flex justify-between items-center p-4 sm:p-6 lg:px-8 absolute top-0 w-full z-50">
         <div className="flex items-center gap-2">
-          <a href="/">
+          <a href="/" className="cursor-pointer">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/assets/images/logo.png" alt="MyNextAnime Logo" className="h-8 w-auto" />
           </a>
@@ -84,22 +86,13 @@ export default function HomePageClient({ user, userName }: HomePageClientProps) 
         {/* Dynamic Header based on auth */}
         {user ? (
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="flex items-center gap-2 sm:gap-3 bg-[#1e1e1e] border border-gray-700 rounded-full px-3 sm:px-4 py-1.5">
-              <span className="text-xs sm:text-sm text-gray-300 font-medium truncate max-w-[80px] sm:max-w-[120px]">{user.email}</span>
-              <div className="w-[1px] h-3 sm:h-4 bg-gray-700"></div>
-              <a
-                href="/saved"
-                className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors font-semibold"
-              >
-                My List
-              </a>
-              <div className="w-[1px] h-3 sm:h-4 bg-gray-700"></div>
-              <form action="/auth/signout" method="post">
-                <button className="text-xs sm:text-sm text-red-400 hover:text-red-300 transition-colors font-semibold">
-                  Sign Out
-                </button>
-              </form>
-            </div>
+            <a
+              href="/saved"
+              className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors font-semibold bg-[#1e1e1e] hover:bg-gray-800 border border-gray-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm"
+            >
+              My List
+            </a>
+            <UserMenu email={user.email || ''} />
           </div>
         ) : (
           <div className="flex gap-3 sm:gap-4">
@@ -119,9 +112,12 @@ export default function HomePageClient({ user, userName }: HomePageClientProps) 
         {user ? (
           /* Logged In: Refined Claude-like Interface */
           <div className="w-full flex flex-col items-center justify-center mt-4">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-[#e5e5e5] mb-10 text-center flex items-center justify-center gap-3">
-              <Sparkles className="text-orange-400" size={32} />
-              {greetingTime}, {userName} senpai
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[#e5e5e5] mb-10 text-center flex flex-wrap items-center justify-center gap-x-2 sm:gap-x-3 gap-y-1">
+              <span className="flex items-center gap-2 sm:gap-3 text-orange-400">
+                <Sparkles size={28} className="sm:w-8 sm:h-8" />
+                <span className="text-[#e5e5e5]">{greetingTime},</span>
+              </span>
+              <span>{userName} senpai</span>
             </h1>
             
             <div className="w-full max-w-3xl relative mb-16">
