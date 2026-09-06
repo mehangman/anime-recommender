@@ -111,7 +111,7 @@ export default function HomePageClient({ user, userName }: HomePageClientProps) 
         
         {user ? (
           /* Logged In: Refined Claude-like Interface */
-          <div className="w-full flex flex-col items-center justify-center mt-4">
+          <div className="w-full flex flex-col items-center justify-center mt-16 sm:mt-8">
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[#e5e5e5] mb-10 text-center flex flex-wrap items-center justify-center gap-x-2 sm:gap-x-3 gap-y-1">
               <span className="flex items-center gap-2 sm:gap-3 text-orange-400">
                 <Sparkles size={28} className="sm:w-8 sm:h-8" />
@@ -127,6 +127,10 @@ export default function HomePageClient({ user, userName }: HomePageClientProps) 
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="How can I help you find anime today?"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   className="flex-1 rounded-full px-5 sm:px-6 py-4 sm:py-5 bg-[#1a1a1a] text-white border border-gray-700 focus:outline-none focus:border-blue-500/50 text-sm sm:text-lg shadow-xl placeholder:text-gray-500 transition-all outline-none"
                 />
                 <button
