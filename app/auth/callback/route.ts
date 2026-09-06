@@ -11,21 +11,17 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host') // before vercel
-      const isLocalEnv = process.env.NODE_ENV === 'development'
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin
+      const cleanSiteUrl = siteUrl.replace(/\/$/, '')
       
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`)
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`)
-      } else {
-        return NextResponse.redirect(`${origin}${next}`)
-      }
+      return NextResponse.redirect(`${cleanSiteUrl}${next}`)
     } else {
       console.error('Auth error:', error.message)
     }
   }
 
   // Fallback if no code or error occurred
-  return NextResponse.redirect(`${origin}/login?error=OAuthFailed`)
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin
+  const cleanSiteUrl = siteUrl.replace(/\/$/, '')
+  return NextResponse.redirect(`${cleanSiteUrl}/login?error=OAuthFailed`)
 }

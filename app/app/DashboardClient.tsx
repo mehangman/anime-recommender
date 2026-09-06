@@ -102,7 +102,10 @@ export default function DashboardClient({ user }: { user: User }) {
       const response = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: currentMessages, mode: 'chat' }),
+        body: JSON.stringify({ 
+          messages: currentMessages.map(m => ({ role: m.role, content: m.content })), 
+          mode: 'chat' 
+        }),
       })
 
       if (!response.ok) {
@@ -113,8 +116,8 @@ export default function DashboardClient({ user }: { user: User }) {
       
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.message || "Here are some recommendations!",
-        animeResults: data.animes || []
+        content: data.reply || "Here are some recommendations!",
+        animeResults: data.results || []
       }
       
       setMessages([...currentMessages, assistantMessage])
@@ -143,7 +146,10 @@ export default function DashboardClient({ user }: { user: User }) {
       const response = await fetch('/api/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, mode: 'recommend' }),
+        body: JSON.stringify({ 
+          messages: messages.map(m => ({ role: m.role, content: m.content })), 
+          mode: 'recommend' 
+        }),
       })
 
       if (!response.ok) throw new Error('API failed')
@@ -152,8 +158,8 @@ export default function DashboardClient({ user }: { user: User }) {
       
       const assistantMessage: Message = {
         role: 'assistant',
-        content: data.message || "I found some great matches for you!",
-        animeResults: data.animes || []
+        content: data.reply || "I found some great matches for you!",
+        animeResults: data.results || []
       }
       
       setMessages(prev => [...prev, assistantMessage])

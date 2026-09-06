@@ -31,11 +31,13 @@ export async function signup(formData: FormData) {
   }
 
   const supabase = createClient()
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || headers().get('origin')
+  
   const { data, error } = await supabase.auth.signUp({ 
     email, 
     password,
     options: {
-      emailRedirectTo: `${headers().get('origin')}/auth/callback`
+      emailRedirectTo: `${siteUrl}/auth/callback`
     }
   })
 
@@ -53,19 +55,25 @@ export async function signup(formData: FormData) {
 export async function signInWithGoogle() {
   const supabase = createClient()
   
-  // Safely get the origin, handling deployed environments
-  const requestHeaders = headers()
-  let origin = requestHeaders.get('origin')
+  // Use explicit NEXT_PUBLIC_SITE_URL if available, otherwise safely build origin
+  let origin: string | null | undefined = process.env.NEXT_PUBLIC_SITE_URL
   if (!origin) {
-    const host = requestHeaders.get('host')
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
-    origin = `${protocol}://${host}`
+    const requestHeaders = headers()
+    origin = requestHeaders.get('origin')
+    if (!origin) {
+      const host = requestHeaders.get('host')
+      const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
+      origin = `${protocol}://${host}`
+    }
   }
+
+  // Ensure no trailing slash
+  const finalOrigin = origin ? origin.replace(/\/$/, '') : ''
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: `${finalOrigin}/auth/callback`,
     },
   })
 
