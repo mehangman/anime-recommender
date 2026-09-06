@@ -52,7 +52,15 @@ export async function signup(formData: FormData) {
 
 export async function signInWithGoogle() {
   const supabase = createClient()
-  const origin = headers().get('origin')
+  
+  // Safely get the origin, handling deployed environments
+  const requestHeaders = headers()
+  let origin = requestHeaders.get('origin')
+  if (!origin) {
+    const host = requestHeaders.get('host')
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
+    origin = `${protocol}://${host}`
+  }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',

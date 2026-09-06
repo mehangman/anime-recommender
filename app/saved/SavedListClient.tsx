@@ -49,21 +49,21 @@ export default function SavedListClient({
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-[120px] pointer-events-none"></div>
 
       {/* Header */}
-      <header className="border-b border-gray-800/50 px-4 sm:px-8 py-3 bg-black/40 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <a href="/app" className="flex items-center gap-3 cursor-pointer group hover:bg-gray-800/30 px-3 py-1.5 rounded-xl transition-colors">
+      <header className="border-b border-gray-800/50 px-3 sm:px-8 py-3 bg-black/40 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto flex justify-between items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-6">
+            <a href="/app" className="flex items-center gap-2 sm:gap-3 cursor-pointer group hover:bg-gray-800/30 px-2 sm:px-3 py-1.5 rounded-xl transition-colors">
               <ArrowLeft size={18} className="text-gray-400 group-hover:text-white transition-colors" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/images/logo.png" alt="MyNextAnime Logo" className="h-9 w-auto" />
+              <img src="/assets/images/logo.png" alt="MyNextAnime Logo" className="h-7 sm:h-9 w-auto" />
               <span className="hidden sm:block text-xs font-medium text-gray-500 group-hover:text-gray-300">Back to chat</span>
             </a>
           </div>
-          <div className="flex items-center gap-3 bg-[#1e1e1e] border border-gray-700/50 rounded-full px-4 py-1.5 shadow-sm">
-            <span className="text-sm text-gray-300 font-medium truncate max-w-[120px] sm:max-w-none">{userEmail}</span>
-            <div className="w-[1px] h-4 bg-gray-700"></div>
+          <div className="flex items-center gap-2 sm:gap-3 bg-[#1e1e1e] border border-gray-700/50 rounded-full px-3 sm:px-4 py-1.5 shadow-sm">
+            <span className="text-xs sm:text-sm text-gray-300 font-medium truncate max-w-[80px] sm:max-w-none">{userEmail}</span>
+            <div className="w-[1px] h-3 sm:h-4 bg-gray-700"></div>
             <form action="/auth/signout" method="post">
-              <button className="text-sm text-red-400 hover:text-red-300 transition-colors font-semibold">
+              <button className="text-xs sm:text-sm text-red-400 hover:text-red-300 transition-colors font-semibold">
                 Sign Out
               </button>
             </form>

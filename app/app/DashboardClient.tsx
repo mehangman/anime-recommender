@@ -199,15 +199,15 @@ export default function DashboardClient({ user }: { user: User }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0a0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0a0a0a] to-[#0a0a0a] text-white">
+    <div className="h-[100dvh] flex flex-col bg-[#0a0a0a] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0a0a0a] to-[#0a0a0a] text-white overflow-hidden">
       {/* Header */}
-      <header className="border-b border-gray-800/50 px-4 sm:px-8 py-3 bg-black/40 backdrop-blur-md sticky top-0 z-50">
+      <header className="shrink-0 border-b border-gray-800/50 px-3 sm:px-8 py-3 bg-black/40 backdrop-blur-md z-50">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <a href="/" className="flex items-center gap-2 cursor-pointer group">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/images/logo.png" alt="MyNextAnime Logo" className="h-10 w-auto" />
+            <img src="/assets/images/logo.png" alt="MyNextAnime Logo" className="h-7 sm:h-10 w-auto" />
           </a>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={clearHistory}
               className="text-gray-400 hover:text-red-400 bg-gray-800/30 hover:bg-red-500/10 border border-gray-700/50 hover:border-red-500/30 transition-all rounded-full hidden sm:flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold tracking-wide"
@@ -216,18 +216,18 @@ export default function DashboardClient({ user }: { user: User }) {
               <Trash2 size={14} />
               <span>Clear Chat</span>
             </button>
-            <div className="flex items-center gap-3 bg-[#1e1e1e] border border-gray-700 rounded-full px-4 py-1.5">
-              <span className="text-sm text-gray-300 font-medium truncate max-w-[120px] sm:max-w-none">{user.email}</span>
-              <div className="w-[1px] h-4 bg-gray-700"></div>
+            <div className="flex items-center gap-2 sm:gap-3 bg-[#1e1e1e] border border-gray-700 rounded-full px-3 sm:px-4 py-1 sm:py-1.5">
+              <span className="text-xs sm:text-sm text-gray-300 font-medium truncate max-w-[60px] sm:max-w-[120px]">{user.email}</span>
+              <div className="w-[1px] h-3 sm:h-4 bg-gray-700"></div>
               <a
                 href="/saved"
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-semibold flex items-center gap-1"
+                className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors font-semibold flex items-center gap-1"
               >
                 My List
               </a>
-              <div className="w-[1px] h-4 bg-gray-700"></div>
+              <div className="w-[1px] h-3 sm:h-4 bg-gray-700"></div>
               <form action="/auth/signout" method="post">
-                <button className="text-sm text-red-400 hover:text-red-300 transition-colors font-semibold">
+                <button className="text-xs sm:text-sm text-red-400 hover:text-red-300 transition-colors font-semibold">
                   Sign Out
                 </button>
               </form>
@@ -237,13 +237,13 @@ export default function DashboardClient({ user }: { user: User }) {
       </header>
 
       {/* Chat Area */}
-      <div className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 flex flex-col">
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+      <main className="flex-1 min-h-0 max-w-5xl w-full mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col">
+        <div className="flex-1 overflow-y-auto space-y-4 mb-2 pr-1 sm:pr-2 pb-2">
           {messages.map((msg, i) => (
             <div key={i}>
               <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                  className={`max-w-[85%] sm:max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-blue-600 text-white rounded-br-md'
                       : 'bg-[#1e1e1e] text-gray-200 border border-gray-700 rounded-bl-md'
@@ -328,7 +328,7 @@ export default function DashboardClient({ user }: { user: User }) {
             </button>
           </form>
         </div>
-      </div>
+      </main>
 
       {/* Modal */}
       {selectedAnime && (

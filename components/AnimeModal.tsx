@@ -40,21 +40,20 @@ export function AnimeModal({ anime, onClose, hideAddButton = false }: { anime: A
       onClick={onClose}
     >
       <div
-        className="bg-[#1a1a1a] rounded-xl border border-gray-700 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="relative bg-[#1a1a1a] rounded-xl border border-gray-700 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white bg-black/50 rounded-full p-1 z-10"
-        >
-          <X size={20} />
-        </button>
-
         {/* Content — horizontal layout on desktop */}
         <div className="flex flex-col sm:flex-row">
           {/* Poster */}
-          <div className="sm:w-[250px] flex-shrink-0">
+          <div className="relative sm:w-[250px] flex-shrink-0">
+            {/* Close button on the image poster */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 text-white bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-full p-1.5 z-10 transition-colors shadow-lg"
+            >
+              <X size={18} />
+            </button>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={anime.poster_url || 'https://via.placeholder.com/225x318?text=No+Image'}
